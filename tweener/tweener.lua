@@ -46,7 +46,6 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 
 	-- Create the tween object
 	local time_elapsed = 0
-	local latest_time = socket.gettime()
 	local tween = {
 		timer_id = nil,
 		is_paused = false
@@ -54,9 +53,8 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 
 	-- Create the timer
 	tween.timer_id = timer.delay(update_delta_time, true, function(_, handle, dt)
-		-- If the tween is paused, update the latest time and return
+		-- If the tween is paused, skip the update
 		if tween.is_paused then
-			latest_time = socket.gettime()
 			return
 		end
 
@@ -67,10 +65,8 @@ function M.tween(easing_function, from, to, time, callback, update_delta_time)
 			return
 		end
 
-		-- Update the time elapsed
-		local current_time = socket.gettime()
-		time_elapsed = time_elapsed + (current_time - latest_time)
-		latest_time = current_time
+		-- Update the time elapsed. Uses the timer dt so the tween follows the time step of its collection proxy
+		time_elapsed = time_elapsed + dt
 
 		-- If the tween is finished, cancel it and call the callback
 		if time_elapsed >= time then
